@@ -6,6 +6,7 @@ import com.edu.vehiculos.domain.dto.VehicleDiagnosisResponse;
 import com.edu.vehiculos.service.VehicleMaintenanceService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,7 +22,7 @@ public class VehicleDiagnosisController {
     private final VehicleMaintenanceService maintenanceService;
 
     @PostMapping("/diagnose")
-    public ResponseEntity<VehicleDiagnosisResponse> diagnoseVehicle(@RequestBody VehicleDiagnosisRequest request) {
+    public ResponseEntity<VehicleDiagnosisResponse> diagnoseVehicle(@Valid @RequestBody VehicleDiagnosisRequest request) {
         log.info("Recibida solicitud POST /api/vehicles/diagnose para placa: {}", request.getLicensePlate());
         VehicleDiagnosisResponse response = maintenanceService.diagnoseVehicle(request);
         return ResponseEntity.ok(response);
