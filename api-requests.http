@@ -1,0 +1,95 @@
+### 1. Health Check del Backend y Motor ONNX
+GET http://localhost:8082/api/vehicles/health
+Accept: application/json
+
+### 2. Diagnóstico Vehicular - Falla en Transmisión (Vibración y Embrague)
+POST http://localhost:8082/api/vehicles/diagnose
+Content-Type: application/json
+
+{
+  "licensePlate": "TRX-101",
+  "mileageKm": 115000.0,
+  "kmSinceLastService": 14500.0,
+  "fuelConsumptionRatio": 1.15,
+  "rawSymptomText": "Vibración excesiva al acelerar en tercera velocidad y la palanca tironea"
+}
+
+### 3. Diagnóstico Vehicular - Falla en Frenos (Chirrido y Distancia de Frenado)
+POST http://localhost:8082/api/vehicles/diagnose
+Content-Type: application/json
+
+{
+  "licensePlate": "BRK-202",
+  "mileageKm": 68000.0,
+  "kmSinceLastService": 13500.0,
+  "fuelConsumptionRatio": 1.05,
+  "rawSymptomText": "Escucho un chirrido agudo constante en las ruedas delanteras al presionar el freno"
+}
+
+### 4. Diagnóstico Vehicular - Falla en Suspensión (Baches y Amortiguadores)
+POST http://localhost:8082/api/vehicles/diagnose
+Content-Type: application/json
+
+{
+  "licensePlate": "SUS-303",
+  "mileageKm": 95000.0,
+  "kmSinceLastService": 8000.0,
+  "fuelConsumptionRatio": 1.02,
+  "rawSymptomText": "Golpeteo fuerte y rebotes prolongados al pasar por reductores de velocidad"
+}
+
+### 5. Diagnóstico Vehicular - Falla en Motor (Consumo Elevado y Humo)
+POST http://localhost:8082/api/vehicles/diagnose
+Content-Type: application/json
+
+{
+  "licensePlate": "ENG-404",
+  "mileageKm": 140000.0,
+  "kmSinceLastService": 17000.0,
+  "fuelConsumptionRatio": 1.45,
+  "rawSymptomText": "Humo negro saliendo del escape y cascabeleo en subidas con alto consumo de gasolina"
+}
+
+### 6. Diagnóstico Vehicular - Falla Eléctrica (Batería y Alternador)
+POST http://localhost:8082/api/vehicles/diagnose
+Content-Type: application/json
+
+{
+  "licensePlate": "ELE-505",
+  "mileageKm": 52000.0,
+  "kmSinceLastService": 4000.0,
+  "fuelConsumptionRatio": 1.01,
+  "rawSymptomText": "Testigo de batería encendido en el tablero y las luces bajan su intensidad"
+}
+
+### 7. Diagnóstico Vehicular - Estado Normal / Rutinario
+POST http://localhost:8082/api/vehicles/diagnose
+Content-Type: application/json
+
+{
+  "licensePlate": "OK-777",
+  "mileageKm": 25000.0,
+  "kmSinceLastService": 2500.0,
+  "fuelConsumptionRatio": 1.00,
+  "rawSymptomText": "Revisión rutinaria de viaje, el vehículo funciona sin anomalías"
+}
+
+### 8. Prueba de Validación Fallida (Payload Inválido)
+POST http://localhost:8082/api/vehicles/diagnose
+Content-Type: application/json
+
+{
+  "licensePlate": "",
+  "mileageKm": -50.0,
+  "kmSinceLastService": 1000.0,
+  "fuelConsumptionRatio": 5.0,
+  "rawSymptomText": ""
+}
+
+### 9. Consultar Historial Completo de Diagnósticos
+GET http://localhost:8082/api/vehicles/history
+Accept: application/json
+
+### 10. Consultar Historial Filtrado por Placa Específica
+GET http://localhost:8082/api/vehicles/history/TRX-101
+Accept: application/json
