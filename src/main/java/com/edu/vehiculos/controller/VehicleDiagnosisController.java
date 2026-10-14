@@ -41,4 +41,15 @@ public class VehicleDiagnosisController {
         List<VehicleDiagnosisLog> history = maintenanceService.getHistoryByLicensePlate(null);
         return ResponseEntity.ok(history);
     }
+
+    @GetMapping("/health")
+    public ResponseEntity<java.util.Map<String, Object>> checkHealth() {
+        log.info("Recibida solicitud GET /api/vehicles/health");
+        return ResponseEntity.ok(java.util.Map.of(
+                "status", "UP",
+                "service", "Sistema Predictivo de Mantenimiento Vehicular",
+                "inferenceEngine", "ONNX Runtime 1.20",
+                "timestamp", java.time.LocalDateTime.now()
+        ));
+    }
 }
