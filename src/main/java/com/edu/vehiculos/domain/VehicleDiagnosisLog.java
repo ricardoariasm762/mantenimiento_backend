@@ -1,5 +1,6 @@
 package com.edu.vehiculos.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -43,6 +44,11 @@ public class VehicleDiagnosisLog {
     @Column(columnDefinition = "TEXT")
     private String recommendedAction;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "reported_by_user_id")
+    @JsonIgnoreProperties({"password", "hibernateLazyInitializer", "handler"})
+    private User reportedBy;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -50,6 +56,9 @@ public class VehicleDiagnosisLog {
     protected void onCreate() {
         if (createdAt == null) {
             createdAt = LocalDateTime.now();
+        }
+        if (licensePlate != null) {
+            licensePlate = licensePlate.toUpperCase().trim();
         }
     }
 }
