@@ -1,95 +1,124 @@
-### 1. Health Check del Backend y Motor ONNX
+### ==============================================================================
+### SISTEMA PREDICTIVO DE MANTENIMIENTO VEHICULAR - PETICIONES HTTP / REST CLIENT
+### ==============================================================================
+
+### 1. Health Check del Backend, Motor ONNX y Módulo de Seguridad JWT
 GET http://localhost:8082/api/vehicles/health
 Accept: application/json
 
-### 2. Diagnóstico Vehicular - Falla en Transmisión (Vibración y Embrague)
-POST http://localhost:8082/api/vehicles/diagnose
+### ------------------------------------------------------------------------------
+### MÓDULO 1: AUTENTICACIÓN Y ROLES (RBAC)
+### ------------------------------------------------------------------------------
+
+### 2. Registro de Conductor (ROLE_DRIVER) con vehículo inicial
+POST http://localhost:8082/api/auth/register
 Content-Type: application/json
 
 {
-  "licensePlate": "TRX-101",
-  "mileageKm": 115000.0,
-  "kmSinceLastService": 14500.0,
-  "fuelConsumptionRatio": 1.15,
-  "rawSymptomText": "Vibración excesiva al acelerar en tercera velocidad y la palanca tironea"
+  "fullName": "Carlos Conductor",
+  "email": "carlos.driver@veloce.com",
+  "password": "driverPassword123",
+  "phone": "+57 300 123 4567",
+  "role": "ROLE_DRIVER",
+  "licensePlate": "TRX-720",
+  "brand": "Toyota",
+  "model": "Hilux Turbo-Diesel",
+  "modelYear": 2023,
+  "baseMileageKm": 64820.0
 }
 
-### 3. Diagnóstico Vehicular - Falla en Frenos (Chirrido y Distancia de Frenado)
-POST http://localhost:8082/api/vehicles/diagnose
+### 3. Registro de Mecánico (ROLE_MECHANIC)
+POST http://localhost:8082/api/auth/register
 Content-Type: application/json
 
 {
-  "licensePlate": "BRK-202",
-  "mileageKm": 68000.0,
-  "kmSinceLastService": 13500.0,
-  "fuelConsumptionRatio": 1.05,
-  "rawSymptomText": "Escucho un chirrido agudo constante en las ruedas delanteras al presionar el freno"
+  "fullName": "Ing. Mateo Celli",
+  "email": "mateo.mechanic@veloce.com",
+  "password": "mechanicPassword123",
+  "phone": "+57 311 987 6543",
+  "role": "ROLE_MECHANIC"
 }
 
-### 4. Diagnóstico Vehicular - Falla en Suspensión (Baches y Amortiguadores)
-POST http://localhost:8082/api/vehicles/diagnose
+### 4. Login Conductor Preconfigurado (Retorna Token JWT)
+# @name loginDriver
+POST http://localhost:8082/api/auth/login
 Content-Type: application/json
 
 {
-  "licensePlate": "SUS-303",
-  "mileageKm": 95000.0,
-  "kmSinceLastService": 8000.0,
-  "fuelConsumptionRatio": 1.02,
-  "rawSymptomText": "Golpeteo fuerte y rebotes prolongados al pasar por reductores de velocidad"
+  "email": "driver@veloce.com",
+  "password": "driver123"
 }
 
-### 5. Diagnóstico Vehicular - Falla en Motor (Consumo Elevado y Humo)
-POST http://localhost:8082/api/vehicles/diagnose
+### 5. Login Mecánico Preconfigurado (Retorna Token JWT)
+# @name loginMechanic
+POST http://localhost:8082/api/auth/login
 Content-Type: application/json
 
 {
-  "licensePlate": "ENG-404",
-  "mileageKm": 140000.0,
-  "kmSinceLastService": 17000.0,
-  "fuelConsumptionRatio": 1.45,
-  "rawSymptomText": "Humo negro saliendo del escape y cascabeleo en subidas con alto consumo de gasolina"
+  "email": "mecanico@veloce.com",
+  "password": "mecanico123"
 }
 
-### 6. Diagnóstico Vehicular - Falla Eléctrica (Batería y Alternador)
-POST http://localhost:8082/api/vehicles/diagnose
-Content-Type: application/json
-
-{
-  "licensePlate": "ELE-505",
-  "mileageKm": 52000.0,
-  "kmSinceLastService": 4000.0,
-  "fuelConsumptionRatio": 1.01,
-  "rawSymptomText": "Testigo de batería encendido en el tablero y las luces bajan su intensidad"
-}
-
-### 7. Diagnóstico Vehicular - Estado Normal / Rutinario
-POST http://localhost:8082/api/vehicles/diagnose
-Content-Type: application/json
-
-{
-  "licensePlate": "OK-777",
-  "mileageKm": 25000.0,
-  "kmSinceLastService": 2500.0,
-  "fuelConsumptionRatio": 1.00,
-  "rawSymptomText": "Revisión rutinaria de viaje, el vehículo funciona sin anomalías"
-}
-
-### 8. Prueba de Validación Fallida (Payload Inválido)
-POST http://localhost:8082/api/vehicles/diagnose
-Content-Type: application/json
-
-{
-  "licensePlate": "",
-  "mileageKm": -50.0,
-  "kmSinceLastService": 1000.0,
-  "fuelConsumptionRatio": 5.0,
-  "rawSymptomText": ""
-}
-
-### 9. Consultar Historial Completo de Diagnósticos
-GET http://localhost:8082/api/vehicles/history
+### 6. Perfil del Usuario Autenticado (/api/auth/me)
+GET http://localhost:8082/api/auth/me
+Authorization: Bearer {{loginDriver.response.body.token}}
 Accept: application/json
 
-### 10. Consultar Historial Filtrado por Placa Específica
-GET http://localhost:8082/api/vehicles/history/TRX-101
+### ------------------------------------------------------------------------------
+### MÓDULO 2: DIAGNÓSTICO PREDICTIVO VEHICULAR (PROTEGIDO)
+### ------------------------------------------------------------------------------
+
+### 7. Diagnóstico Vehicular - Conductor Reporta Falla en su Vehículo TRX-720
+POST http://localhost:8082/api/vehicles/diagnose
+Content-Type: application/json
+Authorization: Bearer {{loginDriver.response.body.token}}
+
+{
+  "licensePlate": "TRX-720",
+  "mileageKm": 64820.0,
+  "kmSinceLastService": 8450.0,
+  "fuelConsumptionRatio": 1.12,
+  "rawSymptomText": "Noticeable rattle and high vibration when accelerating over 60 km/h, accompanied by intermittent transmission slip"
+}
+
+### 8. Intento de Conductor Diagnosticando Vehículo Ajeno (RBAC Error 403 Forbidden)
+POST http://localhost:8082/api/vehicles/diagnose
+Content-Type: application/json
+Authorization: Bearer {{loginDriver.response.body.token}}
+
+{
+  "licensePlate": "FORBIDDEN-999",
+  "mileageKm": 120000.0,
+  "kmSinceLastService": 14000.0,
+  "fuelConsumptionRatio": 1.15,
+  "rawSymptomText": "Falla en caja de cambios"
+}
+
+### ------------------------------------------------------------------------------
+### MÓDULO 3: HISTORIALES Y REGLAS RBAC
+### ------------------------------------------------------------------------------
+
+### 9. Conductor Consulta Historial de su Placa Asignada TRX-720 (Permitido)
+GET http://localhost:8082/api/vehicles/history/TRX-720
+Authorization: Bearer {{loginDriver.response.body.token}}
+Accept: application/json
+
+### 10. Conductor Intenta Consultar Placa no Asignada (403 Forbidden)
+GET http://localhost:8082/api/vehicles/history/MTR-505
+Authorization: Bearer {{loginDriver.response.body.token}}
+Accept: application/json
+
+### 11. Mecánico Consulta Historial de Cualquier Placa (Permitido)
+GET http://localhost:8082/api/vehicles/history/TRX-720
+Authorization: Bearer {{loginMechanic.response.body.token}}
+Accept: application/json
+
+### 12. Mecánico Consulta Historial Global Completo de Toda la Flota (ROLE_MECHANIC)
+GET http://localhost:8082/api/vehicles/history
+Authorization: Bearer {{loginMechanic.response.body.token}}
+Accept: application/json
+
+### 13. Conductor Consulta sus Vehículos Asignados
+GET http://localhost:8082/api/vehicles/my-vehicles
+Authorization: Bearer {{loginDriver.response.body.token}}
 Accept: application/json
