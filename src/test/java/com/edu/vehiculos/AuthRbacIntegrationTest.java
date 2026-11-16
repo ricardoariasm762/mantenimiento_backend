@@ -31,7 +31,7 @@ class AuthRbacIntegrationTest {
     private VehicleMaintenanceService maintenanceService;
 
     @Test
-    @DisplayName("Debe registrar y autenticar un Conductor y generar token JWT con rol ROLE_DRIVER")
+    @DisplayName("Should register and authenticate a Driver and generate JWT token with ROLE_DRIVER")
     void testRegisterAndLoginDriver() {
         RegisterRequest registerReq = RegisterRequest.builder()
                 .fullName("Juan Perez")
@@ -59,7 +59,7 @@ class AuthRbacIntegrationTest {
     }
 
     @Test
-    @DisplayName("Debe registrar y autenticar un Mecánico con rol ROLE_MECHANIC")
+    @DisplayName("Should register and authenticate a Mechanic with ROLE_MECHANIC")
     void testRegisterAndLoginMechanic() {
         RegisterRequest registerReq = RegisterRequest.builder()
                 .fullName("Carlos Taller")
@@ -74,7 +74,7 @@ class AuthRbacIntegrationTest {
     }
 
     @Test
-    @DisplayName("Debe rechazar login con credenciales incorrectas")
+    @DisplayName("Should reject login with invalid credentials")
     void testInvalidLoginCredentials() {
         LoginRequest loginReq = LoginRequest.builder()
                 .email("nonexistent@test.com")
@@ -85,9 +85,9 @@ class AuthRbacIntegrationTest {
     }
 
     @Test
-    @DisplayName("RBAC: Conductor solo puede consultar el historial de su placa asignada")
+    @DisplayName("RBAC: Driver can only query history for their assigned license plate")
     void testDriverRbacRestriction() {
-        // Conductor A con placa AAA-111
+        // Driver A with license plate AAA-111
         RegisterRequest driverA = RegisterRequest.builder()
                 .fullName("Conductor A")
                 .email("driverA@test.com")
@@ -97,7 +97,7 @@ class AuthRbacIntegrationTest {
                 .build();
         authService.register(driverA);
 
-        // Conductor B con placa BBB-222
+        // Driver B with license plate BBB-222
         RegisterRequest driverB = RegisterRequest.builder()
                 .fullName("Conductor B")
                 .email("driverB@test.com")
@@ -107,13 +107,13 @@ class AuthRbacIntegrationTest {
                 .build();
         authService.register(driverB);
 
-        // Simular sesión de Conductor A
+        // Simulate Driver A security context
         SecurityContextHolder.getContext().setAuthentication(
                 new UsernamePasswordAuthenticationToken("driverA@test.com", null,
                         Collections.singletonList(new SimpleGrantedAuthority("ROLE_DRIVER")))
         );
 
-        // Diagnosticar su propia placa -> permitido
+        // Diagnose own plate -> allowed
         VehicleDiagnosisRequest reqA = VehicleDiagnosisRequest.builder()
                 .licensePlate("AAA-111")
                 .mileageKm(50000.0)
@@ -124,21 +124,20 @@ class AuthRbacIntegrationTest {
         VehicleDiagnosisResponse resA = maintenanceService.diagnoseVehicle(reqA);
         assertNotNull(resA);
 
-        // Consultar su propia placa -> permitido
+        // Query own plate history -> allowed
         assertDoesNotThrow(() -> maintenanceService.getHistoryByLicensePlate("AAA-111"));
 
-        // Intentar consultar la placa de Conductor B -> AccessDeniedException
+        // Attempt to query Driver B's plate -> AccessDeniedException
         assertThrows(AccessDeniedException.class, () -> maintenanceService.getHistoryByLicensePlate("BBB-222"));
 
-        // Ahora simular sesión de Mecánico
+        // Simulate Mechanic security context
         SecurityContextHolder.getContext().setAuthentication(
                 new UsernamePasswordAuthenticationToken("mecanico@veloce.com", null,
                         Collections.singletonList(new SimpleGrantedAuthority("ROLE_MECHANIC")))
         );
 
-        // Mecánico PUEDE consultar cualquier placa
+        // Mechanic can query any vehicle plate
         assertDoesNotThrow(() -> maintenanceService.getHistoryByLicensePlate("AAA-111"));
         assertDoesNotThrow(() -> maintenanceService.getHistoryByLicensePlate("BBB-222"));
     }
 }
-

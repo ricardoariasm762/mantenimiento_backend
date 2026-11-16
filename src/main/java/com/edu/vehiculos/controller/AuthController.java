@@ -23,14 +23,14 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
-        log.info("Solicitud de registro recibida para email: {}", request.getEmail());
+        log.info("Registration request received for email: {}", request.getEmail());
         AuthResponse response = authService.register(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
-        log.info("Solicitud de login recibida para email: {}", request.getEmail());
+        log.info("Login request received for email: {}", request.getEmail());
         AuthResponse response = authService.login(request);
         return ResponseEntity.ok(response);
     }
@@ -44,4 +44,3 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 }
-

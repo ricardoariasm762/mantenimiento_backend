@@ -12,21 +12,21 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class VehicleDiagnosisRequest {
 
-    @NotBlank(message = "La placa del vehículo es requerida")
-    @Pattern(regexp = "^[A-Za-z0-9\\-]{3,10}$", message = "La placa debe tener entre 3 y 10 caracteres alfanuméricos")
+    @NotBlank(message = "Vehicle license plate is required")
+    @Pattern(regexp = "^[A-Za-z0-9\\-]{3,10}$", message = "License plate must be between 3 and 10 alphanumeric characters")
     private String licensePlate;
 
-    @PositiveOrZero(message = "El kilometraje total no puede ser negativo")
+    @PositiveOrZero(message = "Total mileage cannot be negative")
     private double mileageKm;
 
-    @PositiveOrZero(message = "El kilometraje desde el último servicio no puede ser negativo")
+    @PositiveOrZero(message = "Mileage since last service cannot be negative")
     private double kmSinceLastService;
 
-    @DecimalMin(value = "0.5", message = "El ratio de consumo debe ser mayor o igual a 0.5")
-    @DecimalMax(value = "3.0", message = "El ratio de consumo no puede superar 3.0")
-    private double fuelConsumptionRatio; // 1.0 = normal, >1.25 = anómalo
+    @DecimalMin(value = "0.5", message = "Fuel consumption ratio must be at least 0.5")
+    @DecimalMax(value = "3.0", message = "Fuel consumption ratio cannot exceed 3.0")
+    private double fuelConsumptionRatio; // 1.0 = normal, >1.25 = anomalous
 
-    @NotBlank(message = "La descripción del síntoma o motivo de consulta es requerida")
-    @Size(max = 1000, message = "La descripción no puede exceder los 1000 caracteres")
-    private String rawSymptomText;       // Síntoma descrito por voz/texto
+    @NotBlank(message = "Symptom description is required")
+    @Size(max = 1000, message = "Description cannot exceed 1000 characters")
+    private String rawSymptomText; // Symptom described via voice/text
 }

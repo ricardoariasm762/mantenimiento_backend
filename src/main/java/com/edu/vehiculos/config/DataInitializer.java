@@ -22,7 +22,7 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        // Inicializar Conductor por defecto
+        // Initialize default Driver
         if (!userRepository.existsByEmailIgnoreCase("driver@veloce.com")) {
             User driver = User.builder()
                     .fullName("Carlos Conductor")
@@ -32,9 +32,9 @@ public class DataInitializer implements CommandLineRunner {
                     .role(Role.ROLE_DRIVER)
                     .build();
             User savedDriver = userRepository.save(driver);
-            log.info("Usuario Conductor inicial creado: driver@veloce.com / driver123");
+            log.info("Default Driver user created: driver@veloce.com / driver123");
 
-            // Asignar vehículo TRX-720 al conductor
+            // Assign vehicle TRX-720 to the driver
             if (!vehicleRepository.existsByLicensePlateIgnoreCase("TRX-720")) {
                 Vehicle vehicle = Vehicle.builder()
                         .licensePlate("TRX-720")
@@ -45,11 +45,11 @@ public class DataInitializer implements CommandLineRunner {
                         .owner(savedDriver)
                         .build();
                 vehicleRepository.save(vehicle);
-                log.info("Vehículo TRX-720 asignado a driver@veloce.com");
+                log.info("Vehicle TRX-720 assigned to driver@veloce.com");
             }
         }
 
-        // Inicializar Mecánico por defecto
+        // Initialize default Mechanic
         if (!userRepository.existsByEmailIgnoreCase("mecanico@veloce.com")) {
             User mechanic = User.builder()
                     .fullName("Ing. Mateo Celli")
@@ -59,8 +59,7 @@ public class DataInitializer implements CommandLineRunner {
                     .role(Role.ROLE_MECHANIC)
                     .build();
             userRepository.save(mechanic);
-            log.info("Usuario Mecánico inicial creado: mecanico@veloce.com / mecanico123");
+            log.info("Default Mechanic user created: mecanico@veloce.com / mecanico123");
         }
     }
 }
-

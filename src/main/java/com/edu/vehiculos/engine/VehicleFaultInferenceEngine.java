@@ -55,7 +55,7 @@ public class VehicleFaultInferenceEngine {
     @PostConstruct
     public void init() {
         try {
-            log.info("Inicializando ONNX Runtime Environment...");
+            log.info("Initializing ONNX Runtime Environment...");
             this.env = OrtEnvironment.getEnvironment();
             OrtSession.SessionOptions opts = new OrtSession.SessionOptions();
 
@@ -63,7 +63,7 @@ public class VehicleFaultInferenceEngine {
             Resource resource = resourceLoader.getResource(fullPath);
 
             if (!resource.exists()) {
-                throw new IllegalStateException("El archivo del modelo ONNX no se encontró en: " + fullPath);
+                throw new IllegalStateException("ONNX model file not found at: " + fullPath);
             }
 
             try (InputStream is = resource.getInputStream()) {
@@ -71,10 +71,10 @@ public class VehicleFaultInferenceEngine {
                 this.session = env.createSession(modelBytes, opts);
             }
 
-            log.info("Modelo ONNX cargado exitosamente desde {}. Entradas: {}", fullPath, session.getInputNames());
+            log.info("ONNX model loaded successfully from {}. Inputs: {}", fullPath, session.getInputNames());
         } catch (Exception e) {
-            log.error("Error al cargar el modelo ONNX: {}", e.getMessage(), e);
-            throw new RuntimeException("No se pudo inicializar el motor de inferencia ONNX", e);
+            log.error("Error loading ONNX model: {}", e.getMessage(), e);
+            throw new RuntimeException("Could not initialize ONNX inference engine", e);
         }
     }
 
@@ -96,13 +96,13 @@ public class VehicleFaultInferenceEngine {
             try (OnnxTensor inputTensor = OnnxTensor.createTensor(env, inputData);
                  OrtSession.Result results = session.run(Collections.singletonMap(inputName, inputTensor))) {
 
-                // Obtener etiqueta predicha (primer tensor)
+                // Obtain predicted label (first tensor)
                 OnnxValue labelValue = results.get(0);
                 long[] labels = (long[]) labelValue.getValue();
                 int predictedClass = (int) labels[0];
 
-                // Obtener probabilidades (segundo tensor)
-                double confidence = 85.0; // Valor seguro predeterminado
+                // Obtain probabilities (second tensor)
+                double confidence = 85.0; // Safe default value
                 if (results.size() > 1) {
                     OnnxValue probValue = results.get(1);
                     Object probObj = probValue.getValue();
@@ -122,28 +122,28 @@ public class VehicleFaultInferenceEngine {
                     }
                 }
 
-                // Redondear a 2 decimales
+                // Round to 2 decimal places
                 confidence = Math.round(confidence * 100.0) / 100.0;
 
                 String predictedFaultName = (predictedClass >= 0 && predictedClass < CLASSES.length)
                         ? CLASSES[predictedClass]
                         : "Desconocido";
 
-                log.info("Inferencia ONNX completada -> Clase predicha: {} ({}), Certeza: {}%",
+                log.info("ONNX inference completed -> Predicted class: {} ({}), Confidence: {}%",
                         predictedClass, predictedFaultName, confidence);
 
                 return new PredictionResult(predictedClass, predictedFaultName, confidence);
             }
         } catch (Exception e) {
-            log.error("Error durante la inferencia ONNX: {}", e.getMessage(), e);
-            throw new RuntimeException("Fallo en la predicción del modelo ONNX", e);
+            log.error("Error during ONNX inference: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to run prediction with ONNX model", e);
         }
     }
 
     @PreDestroy
     public void cleanup() {
         try {
-            log.info("Cerrando recursos de ONNX Runtime...");
+            log.info("Closing ONNX Runtime resources...");
             if (session != null) {
                 session.close();
             }
@@ -151,7 +151,7 @@ public class VehicleFaultInferenceEngine {
                 env.close();
             }
         } catch (Exception e) {
-            log.warn("Excepción al cerrar recursos de ONNX: {}", e.getMessage());
+            log.warn("Exception closing ONNX resources: {}", e.getMessage());
         }
     }
 }

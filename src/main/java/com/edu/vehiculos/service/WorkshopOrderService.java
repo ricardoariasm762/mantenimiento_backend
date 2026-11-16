@@ -9,9 +9,7 @@ import com.edu.vehiculos.repository.WorkshopOrderRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,7 +26,7 @@ public class WorkshopOrderService {
     @Transactional
     public WorkshopOrderDto createOrder(CreateWorkshopOrderRequest request, String mechanicEmail) {
         User mechanic = userRepository.findByEmail(mechanicEmail)
-                .orElseThrow(() -> new IllegalArgumentException("Mecánico no encontrado"));
+                .orElseThrow(() -> new IllegalArgumentException("Mechanic not found"));
 
         String orderNumber = "WO-" + System.currentTimeMillis() % 100000;
         String priority = request.priority() != null ? request.priority() : "ALTA";
@@ -71,9 +69,8 @@ public class WorkshopOrderService {
                 o.getPriority(),
                 o.getStatus(),
                 o.getTechnicalNotes(),
-                o.getIssuedBy() != null ? o.getIssuedBy().getFullName() : "Mecánico Autorizado",
+                o.getIssuedBy() != null ? o.getIssuedBy().getFullName() : "Authorized Mechanic",
                 o.getCreatedAt()
         );
     }
 }
-

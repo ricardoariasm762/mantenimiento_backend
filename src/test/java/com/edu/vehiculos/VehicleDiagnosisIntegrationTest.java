@@ -17,7 +17,7 @@ class VehicleDiagnosisIntegrationTest {
     private VehicleMaintenanceService maintenanceService;
 
     @Test
-    @DisplayName("Debe clasificar falla de transmisión a partir de síntomas y telemetría")
+    @DisplayName("Should classify transmission fault from reported symptoms and telemetry")
     void testDiagnoseTransmissionFault() {
         VehicleDiagnosisRequest request = VehicleDiagnosisRequest.builder()
                 .licensePlate("ABC-123")
@@ -39,7 +39,7 @@ class VehicleDiagnosisIntegrationTest {
     }
 
     @Test
-    @DisplayName("Debe clasificar falla de frenos cuando se reporta chirrido metálico")
+    @DisplayName("Should classify brake fault when metallic squeal is reported")
     void testDiagnoseBrakeFault() {
         VehicleDiagnosisRequest request = VehicleDiagnosisRequest.builder()
                 .licensePlate("XYZ-999")

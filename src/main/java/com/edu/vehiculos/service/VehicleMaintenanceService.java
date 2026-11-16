@@ -40,25 +40,25 @@ public class VehicleMaintenanceService {
     @Transactional
     public VehicleDiagnosisResponse diagnoseVehicle(VehicleDiagnosisRequest request) {
         String licensePlate = request.getLicensePlate() != null ? request.getLicensePlate().toUpperCase().trim() : "SIN-PLACA";
-        log.info("Iniciando diagnóstico para vehículo con placa: {}", licensePlate);
+        log.info("Starting diagnosis for vehicle with license plate: {}", licensePlate);
 
-        // Obtener usuario autenticado si existe en el contexto de seguridad
+        // Get authenticated user if present in security context
         User currentUser = getAuthenticatedUser().orElse(null);
 
-        // Si el usuario es conductor, validar que el vehículo le pertenece o registrarlo a su nombre
+        // If user is a driver, validate vehicle ownership or register it under their name
         if (currentUser != null && currentUser.getRole() == Role.ROLE_DRIVER) {
             Optional<Vehicle> existingVehicle = vehicleRepository.findByLicensePlateIgnoreCase(licensePlate);
             if (existingVehicle.isPresent()) {
                 Vehicle v = existingVehicle.get();
                 if (v.getOwner() != null && !v.getOwner().getId().equals(currentUser.getId())) {
-                    log.warn("Intento de diagnóstico no autorizado: Conductor id={} intentó diagnosticar placa asignada a otro usuario", currentUser.getId());
-                    throw new AccessDeniedException("Acceso denegado: El vehículo con placa " + licensePlate + " está asignado a otro conductor.");
+                    log.warn("Unauthorized diagnosis attempt: Driver id={} attempted to diagnose plate assigned to another user", currentUser.getId());
+                    throw new AccessDeniedException("Access denied: The vehicle with license plate " + licensePlate + " is assigned to another driver.");
                 } else if (v.getOwner() == null) {
                     v.setOwner(currentUser);
                     vehicleRepository.save(v);
                 }
             } else {
-                // Registrar automáticamente el vehículo a nombre del conductor
+                // Automatically register vehicle under driver's name
                 Vehicle newVehicle = Vehicle.builder()
                         .licensePlate(licensePlate)
                         .brand("Genérico")
@@ -68,16 +68,16 @@ public class VehicleMaintenanceService {
                         .owner(currentUser)
                         .build();
                 vehicleRepository.save(newVehicle);
-                log.info("Nuevo vehículo {} registrado para el conductor {}", licensePlate, currentUser.getEmail());
+                log.info("New vehicle {} registered for driver {}", licensePlate, currentUser.getEmail());
             }
         }
 
-        // 1. Capa NLP: Extraer subsistema y severidad desde el síntoma reportado
+        // 1. NLP Layer: Extract subsystem and severity from reported symptom
         SymptomExtractionResult nlpResult = symptomNlpService.extractEntitiesFromSymptom(request.getRawSymptomText());
-        log.info("Resultado NLP -> Subsistema: {} (código {}), Severidad: {}",
+        log.info("NLP Result -> Subsystem: {} (code {}), Severity: {}",
                 nlpResult.getDetectedComponent(), nlpResult.getSymptomSystemCode(), nlpResult.getSymptomSeverity());
 
-        // 2. Capa Predictiva Numérica (ONNX Runtime): Clasificación con telemetría y NLP
+        // 2. Numerical Predictive Layer (ONNX Runtime): Classification with telemetry and NLP
         VehicleFaultInferenceEngine.PredictionResult prediction = inferenceEngine.predict(
                 request.getMileageKm(),
                 request.getKmSinceLastService(),
@@ -86,13 +86,13 @@ public class VehicleMaintenanceService {
                 nlpResult.getSymptomSeverity()
         );
 
-        // 3. Evaluar Nivel de Riesgo y Prescribir Acción Preventiva
+        // 3. Evaluate Risk Level and Prescribe Preventive Action
         String riskLevel = calculateRiskLevel(prediction.getClassIndex(), nlpResult.getSymptomSeverity(),
                 request.getKmSinceLastService(), prediction.getConfidencePercentage());
         String recommendedAction = determineRecommendedAction(prediction.getClassIndex(), nlpResult.getSymptomSeverity());
         String primaryFaultDescription = formatPrimaryFault(prediction.getPredictedFault());
 
-        // 4. Persistir Bitácora en Base de Datos
+        // 4. Persist Log to Database
         VehicleDiagnosisLog logEntity = VehicleDiagnosisLog.builder()
                 .licensePlate(licensePlate)
                 .mileageKm(request.getMileageKm())
@@ -107,10 +107,10 @@ public class VehicleMaintenanceService {
                 .build();
 
         VehicleDiagnosisLog savedLog = logRepository.save(logEntity);
-        log.info("Registro de diagnóstico guardado con ID: {} por usuario: {}", savedLog.getId(),
-                currentUser != null ? currentUser.getEmail() : "ANÓNIMO/SISTEMA");
+        log.info("Diagnosis log saved with ID: {} by user: {}", savedLog.getId(),
+                currentUser != null ? currentUser.getEmail() : "ANONYMOUS/SYSTEM");
 
-        // 5. Retornar DTO de Respuesta
+        // 5. Return Response DTO
         return VehicleDiagnosisResponse.builder()
                 .licensePlate(logEntity.getLicensePlate())
                 .primaryFault(primaryFaultDescription)
@@ -129,12 +129,12 @@ public class VehicleMaintenanceService {
         String plate = licensePlate.toUpperCase().trim();
         User currentUser = getAuthenticatedUser().orElse(null);
 
-        // Validación de permisos según rol
+        // Role-based permission validation
         if (currentUser != null && currentUser.getRole() == Role.ROLE_DRIVER) {
             boolean isAssigned = isVehicleAssignedToUser(plate, currentUser);
             if (!isAssigned) {
-                log.warn("Acceso denegado: Conductor {} intentó consultar historial de placa no asignada: {}", currentUser.getEmail(), plate);
-                throw new AccessDeniedException("Acceso denegado: No tiene permisos para consultar el historial del vehículo " + plate + ". Los conductores solo pueden consultar sus vehículos asignados.");
+                log.warn("Access denied: Driver {} attempted to query history for unassigned plate: {}", currentUser.getEmail(), plate);
+                throw new AccessDeniedException("Access denied: You do not have permissions to query history for vehicle " + plate + ". Drivers can only view their assigned vehicles.");
             }
         }
 
@@ -144,18 +144,18 @@ public class VehicleMaintenanceService {
     public List<VehicleDiagnosisLog> getAllHistory() {
         User currentUser = getAuthenticatedUser().orElse(null);
 
-        // Si es conductor, solo puede ver el historial de sus reportes
+        // If driver, can only view their own reported diagnosis logs
         if (currentUser != null && currentUser.getRole() == Role.ROLE_DRIVER) {
             return logRepository.findByReportedByOrderByCreatedAtDesc(currentUser);
         }
 
-        // Si es mecánico o llamada interna, puede ver todo el historial global
+        // If mechanic or internal call, can view entire global history
         return logRepository.findAllByOrderByCreatedAtDesc();
     }
 
     public List<Vehicle> getVehiclesForCurrentUser() {
         User currentUser = getAuthenticatedUser()
-                .orElseThrow(() -> new AccessDeniedException("Debe estar autenticado para consultar vehículos"));
+                .orElseThrow(() -> new AccessDeniedException("Must be authenticated to query vehicles"));
 
         if (currentUser.getRole() == Role.ROLE_MECHANIC) {
             return vehicleRepository.findAll();
@@ -166,14 +166,14 @@ public class VehicleMaintenanceService {
     @Transactional
     public Vehicle registerVehicle(VehicleDto dto) {
         User currentUser = getAuthenticatedUser()
-                .orElseThrow(() -> new AccessDeniedException("Debe estar autenticado para registrar un vehículo"));
+                .orElseThrow(() -> new AccessDeniedException("Must be authenticated to register a vehicle"));
 
         String plate = dto.getLicensePlate().toUpperCase().trim();
         Optional<Vehicle> existing = vehicleRepository.findByLicensePlateIgnoreCase(plate);
         if (existing.isPresent()) {
             Vehicle v = existing.get();
             if (v.getOwner() != null && !v.getOwner().getId().equals(currentUser.getId())) {
-                throw new AccessDeniedException("El vehículo con placa " + plate + " ya está asignado a otro usuario.");
+                throw new AccessDeniedException("Vehicle with license plate " + plate + " is already assigned to another user.");
             }
             v.setOwner(currentUser);
             if (dto.getBrand() != null) v.setBrand(dto.getBrand());
@@ -200,7 +200,7 @@ public class VehicleMaintenanceService {
         if (vehicleOpt.isPresent() && vehicleOpt.get().getOwner() != null) {
             return vehicleOpt.get().getOwner().getId().equals(user.getId());
         }
-        // Fallback: verificar si el conductor ha emitido diagnósticos previamente para esta placa
+        // Fallback: verify if the driver has previously submitted diagnoses for this plate
         List<VehicleDiagnosisLog> logs = logRepository.findByLicensePlateOrderByCreatedAtDesc(plate);
         return logs.stream().anyMatch(l -> l.getReportedBy() != null && l.getReportedBy().getId().equals(user.getId()));
     }
@@ -214,7 +214,7 @@ public class VehicleMaintenanceService {
     }
 
     private String calculateRiskLevel(int classIndex, int severity, double kmSinceService, double confidence) {
-        if (classIndex == 5) { // Estado Normal
+        if (classIndex == 5) { // Normal state
             return "BAJO";
         }
         if (severity == 3 || kmSinceService > 18000 || (confidence >= 85.0 && (classIndex == 1 || classIndex == 3))) {

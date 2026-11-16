@@ -3,14 +3,13 @@ package com.edu.vehiculos.domain.dto;
 import jakarta.validation.constraints.NotBlank;
 
 public record CreateWorkshopOrderRequest(
-        @NotBlank(message = "La placa del vehículo es obligatoria")
+        @NotBlank(message = "Vehicle license plate is required")
         String licensePlate,
 
-        @NotBlank(message = "La categoría de falla es obligatoria")
+        @NotBlank(message = "Fault category is required")
         String faultCategory,
 
         String priority,
 
         String technicalNotes
 ) {}
-

@@ -23,7 +23,7 @@ public class JwtUtils {
     private String jwtSecret;
 
     @Value("${jwt.expiration-ms:86400000}")
-    private long jwtExpirationMs; // 24 horas por defecto
+    private long jwtExpirationMs; // 24 hours default
 
     private SecretKey getSigningKey() {
         byte[] keyBytes = jwtSecret.getBytes(StandardCharsets.UTF_8);
@@ -84,7 +84,7 @@ public class JwtUtils {
                     .parseSignedClaims(token)
                     .getPayload();
         } catch (Exception e) {
-            log.error("Token JWT inválido o expirado: {}", e.getMessage());
+            log.error("Invalid or expired JWT token: {}", e.getMessage());
             return null;
         }
     }
@@ -95,7 +95,7 @@ public class JwtUtils {
             if (claims == null) return false;
             return !claims.getExpiration().before(new Date());
         } catch (Exception e) {
-            log.error("Fallo en la validación del token JWT: {}", e.getMessage());
+            log.error("JWT token validation failed: {}", e.getMessage());
             return false;
         }
     }
@@ -105,4 +105,3 @@ public class JwtUtils {
         return (tokenUsername != null && tokenUsername.equalsIgnoreCase(username) && validateToken(token));
     }
 }
-

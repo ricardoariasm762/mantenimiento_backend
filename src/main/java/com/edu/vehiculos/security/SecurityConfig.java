@@ -7,7 +7,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -44,24 +43,24 @@ public class SecurityConfig {
                         // Preflight OPTIONS requests
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         
-                        // Endpoints públicos de autenticación y estado
+                        // Public authentication and health status endpoints
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/vehicles/health").permitAll()
 
-                        // Diagnóstico accesible por conductores y mecánicos
+                        // Diagnosis accessible to drivers and mechanics
                         .requestMatchers(HttpMethod.POST, "/api/vehicles/diagnose").hasAnyRole("DRIVER", "MECHANIC")
 
-                        // Historial global de todas las placas reservado para mecánicos
+                        // Global history of all plates reserved for mechanics
                         .requestMatchers(HttpMethod.GET, "/api/vehicles/history").hasRole("MECHANIC")
 
-                        // Historial por placa específica accesible por mecánico o conductor (se valida propiedad en servicio)
+                        // History by specific license plate accessible by mechanic or driver (ownership validated in service)
                         .requestMatchers(HttpMethod.GET, "/api/vehicles/history/{licensePlate}").hasAnyRole("DRIVER", "MECHANIC")
 
-                        // Gestión de vehículos asignados
+                        // Management of assigned vehicles
                         .requestMatchers("/api/vehicles/my-vehicles/**").hasAnyRole("DRIVER", "MECHANIC")
                         .requestMatchers(HttpMethod.POST, "/api/vehicles/register-vehicle").hasAnyRole("DRIVER", "MECHANIC")
 
-                        // Cualquier otra petición requiere autenticación
+                        // Any other request requires authentication
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())
@@ -99,14 +98,12 @@ public class SecurityConfig {
                 "*"
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept", "X-Requested-With", "Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With", "Accept"));
         configuration.setExposedHeaders(List.of("Authorization"));
-        configuration.setAllowCredentials(true);
-        configuration.setMaxAge(3600L);
+        configuration.setAllowCredentials(false);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
 }
-

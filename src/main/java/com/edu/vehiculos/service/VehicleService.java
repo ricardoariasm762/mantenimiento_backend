@@ -25,11 +25,11 @@ public class VehicleService {
     @Transactional
     public VehicleDto registerVehicle(VehicleDto dto, String userEmail) {
         User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         String plate = dto.getLicensePlate().trim().toUpperCase();
         if (vehicleRepository.existsByLicensePlate(plate)) {
-            throw new IllegalArgumentException("El vehículo con placa " + plate + " ya está registrado");
+            throw new IllegalArgumentException("Vehicle with license plate " + plate + " is already registered");
         }
 
         Vehicle vehicle = Vehicle.builder()

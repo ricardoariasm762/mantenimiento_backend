@@ -21,10 +21,10 @@ public class WorkshopOrder {
     private String faultCategory;
 
     @Column(name = "priority", nullable = false, length = 20)
-    private String priority; // CRITICA, ALTA, MEDIA, BAJA
+    private String priority; // CRITICAL, HIGH, MEDIUM, LOW
 
     @Column(name = "status", nullable = false, length = 20)
-    private String status; // EMITIDA, EN_PROCESO, COMPLETADA, CANCELADA
+    private String status; // ISSUED, IN_PROGRESS, COMPLETED, CANCELLED
 
     @Column(columnDefinition = "TEXT")
     private String technicalNotes;
@@ -41,7 +41,7 @@ public class WorkshopOrder {
 
     public WorkshopOrder() {
         this.createdAt = LocalDateTime.now();
-        this.status = "EMITIDA";
+        this.status = "ISSUED";
     }
 
     public WorkshopOrder(String orderNumber, String licensePlate, String faultCategory, String priority, String technicalNotes, User issuedBy) {
@@ -89,4 +89,3 @@ public class WorkshopOrder {
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 }
-

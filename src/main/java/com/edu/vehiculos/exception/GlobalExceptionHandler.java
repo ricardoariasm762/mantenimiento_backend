@@ -24,7 +24,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationExceptions(
             MethodArgumentNotValidException ex, HttpServletRequest request) {
-        log.warn("Error de validación en la petición: {}", ex.getMessage());
+        log.warn("Validation error in request: {}", ex.getMessage());
 
         Map<String, String> errors = new HashMap<>();
         ex.getBindingResult().getAllErrors().forEach(error -> {
@@ -35,8 +35,8 @@ public class GlobalExceptionHandler {
 
         ErrorResponse response = ErrorResponse.builder()
                 .status(HttpStatus.BAD_REQUEST.value())
-                .error("Bad Request - Validación Fallida")
-                .message("Los datos enviados en la solicitud no cumplen con las validaciones requeridas")
+                .error("Bad Request - Validation Failed")
+                .message("Request payload does not satisfy the required validation constraints")
                 .path(request.getRequestURI())
                 .timestamp(LocalDateTime.now())
                 .validationErrors(errors)
@@ -48,7 +48,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgumentException(
             IllegalArgumentException ex, HttpServletRequest request) {
-        log.warn("Parámetro inválido detectado: {}", ex.getMessage());
+        log.warn("Invalid parameter detected: {}", ex.getMessage());
 
         ErrorResponse response = ErrorResponse.builder()
                 .status(HttpStatus.BAD_REQUEST.value())
@@ -64,12 +64,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ErrorResponse> handleBadCredentialsException(
             BadCredentialsException ex, HttpServletRequest request) {
-        log.warn("Credenciales inválidas en {}: {}", request.getRequestURI(), ex.getMessage());
+        log.warn("Invalid credentials at {}: {}", request.getRequestURI(), ex.getMessage());
 
         ErrorResponse response = ErrorResponse.builder()
                 .status(HttpStatus.UNAUTHORIZED.value())
                 .error("Unauthorized")
-                .message(ex.getMessage() != null ? ex.getMessage() : "Credenciales inválidas. Verifique correo y contraseña.")
+                .message(ex.getMessage() != null ? ex.getMessage() : "Invalid credentials. Please verify your email and password.")
                 .path(request.getRequestURI())
                 .timestamp(LocalDateTime.now())
                 .build();
@@ -80,12 +80,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ErrorResponse> handleAuthenticationException(
             AuthenticationException ex, HttpServletRequest request) {
-        log.warn("Fallo de autenticación en {}: {}", request.getRequestURI(), ex.getMessage());
+        log.warn("Authentication failure at {}: {}", request.getRequestURI(), ex.getMessage());
 
         ErrorResponse response = ErrorResponse.builder()
                 .status(HttpStatus.UNAUTHORIZED.value())
                 .error("Unauthorized")
-                .message("Autenticación requerida para acceder a este recurso")
+                .message("Authentication is required to access this resource")
                 .path(request.getRequestURI())
                 .timestamp(LocalDateTime.now())
                 .build();
@@ -96,12 +96,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponse> handleAccessDeniedException(
             AccessDeniedException ex, HttpServletRequest request) {
-        log.warn("Acceso denegado (RBAC) en {}: {}", request.getRequestURI(), ex.getMessage());
+        log.warn("Access denied (RBAC) at {}: {}", request.getRequestURI(), ex.getMessage());
 
         ErrorResponse response = ErrorResponse.builder()
                 .status(HttpStatus.FORBIDDEN.value())
                 .error("Forbidden")
-                .message(ex.getMessage() != null ? ex.getMessage() : "No tiene permisos suficientes para ejecutar esta operación")
+                .message(ex.getMessage() != null ? ex.getMessage() : "Access denied. You do not have sufficient permissions to perform this operation.")
                 .path(request.getRequestURI())
                 .timestamp(LocalDateTime.now())
                 .build();
@@ -112,12 +112,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneralException(
             Exception ex, HttpServletRequest request) {
-        log.error("Excepción interna no controlada: {}", ex.getMessage(), ex);
+        log.error("Unhandled internal exception: {}", ex.getMessage(), ex);
 
         ErrorResponse response = ErrorResponse.builder()
                 .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                 .error("Internal Server Error")
-                .message("Ocurrió un error inesperado al procesar la solicitud vehicular")
+                .message("An unexpected error occurred while processing the vehicular request")
                 .path(request.getRequestURI())
                 .timestamp(LocalDateTime.now())
                 .build();

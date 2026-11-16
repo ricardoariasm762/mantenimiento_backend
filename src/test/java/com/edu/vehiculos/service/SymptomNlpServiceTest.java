@@ -16,12 +16,12 @@ class SymptomNlpServiceTest {
 
     @BeforeEach
     void setUp() {
-        // Inicializar sin ChatClient (modo puramente heurístico de respaldo)
+        // Initialize without ChatClient (pure heuristic fallback mode)
         symptomNlpService = new SymptomNlpService(Optional.empty(), new ObjectMapper());
     }
 
     @Test
-    @DisplayName("Debe clasificar falla en Frenos cuando se mencionan chirridos o pastillas")
+    @DisplayName("Should classify Brake fault when squeals or brake pads are mentioned")
     void testExtractBrakesSymptom() {
         SymptomExtractionResult result = symptomNlpService.extractEntitiesFromSymptom("Siento que el pedal está esponjoso y chirría al frenar");
 
@@ -32,7 +32,7 @@ class SymptomNlpServiceTest {
     }
 
     @Test
-    @DisplayName("Debe clasificar falla en Transmisión ante vibración o problemas de caja/clutch")
+    @DisplayName("Should classify Transmission fault on vibration or clutch slip issues")
     void testExtractTransmissionSymptom() {
         SymptomExtractionResult result = symptomNlpService.extractEntitiesFromSymptom("Vibración intensa en la palanca de cambios y el embrague patina");
 
@@ -43,7 +43,7 @@ class SymptomNlpServiceTest {
     }
 
     @Test
-    @DisplayName("Debe clasificar falla en Suspensión con golpes en baches y amortiguadores")
+    @DisplayName("Should classify Suspension fault on clunking noises over bumps")
     void testExtractSuspensionSymptom() {
         SymptomExtractionResult result = symptomNlpService.extractEntitiesFromSymptom("Golpeteo seco al pasar por baches y el carro rebota mucho");
 
@@ -53,18 +53,18 @@ class SymptomNlpServiceTest {
     }
 
     @Test
-    @DisplayName("Debe clasificar falla de Motor con humo o consumo excesivo")
+    @DisplayName("Should classify Engine fault when smoke or high temperature is present")
     void testExtractEngineSymptom() {
         SymptomExtractionResult result = symptomNlpService.extractEntitiesFromSymptom("Sale humo negro del escape y el motor cascabelea con alta temperatura");
 
         assertNotNull(result);
         assertEquals(3, result.getSymptomSystemCode());
         assertEquals("Motor", result.getDetectedComponent());
-        assertEquals(3, result.getSymptomSeverity()); // Crítico por humo / temperatura
+        assertEquals(3, result.getSymptomSeverity()); // Critical due to smoke / high temp
     }
 
     @Test
-    @DisplayName("Debe clasificar falla Eléctrica cuando falla la batería o luces")
+    @DisplayName("Should classify Electrical fault when battery or lights fail")
     void testExtractElectricalSymptom() {
         SymptomExtractionResult result = symptomNlpService.extractEntitiesFromSymptom("Testigo check engine encendido y las luces parpadean por la batería");
 
@@ -74,7 +74,7 @@ class SymptomNlpServiceTest {
     }
 
     @Test
-    @DisplayName("Debe manejar cadenas nulas o vacías retornando estado por defecto")
+    @DisplayName("Should handle null or empty strings returning default state")
     void testExtractEmptySymptom() {
         SymptomExtractionResult resultNull = symptomNlpService.extractEntitiesFromSymptom(null);
         assertNotNull(resultNull);

@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class VehicleDto {
 
-    @NotBlank(message = "La placa es requerida")
+    @NotBlank(message = "License plate is required")
     private String licensePlate;
     private String brand;
     private String model;
@@ -21,4 +21,3 @@ public class VehicleDto {
     private Long ownerId;
     private String ownerName;
 }
-

@@ -2,7 +2,6 @@ package com.edu.vehiculos.domain.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,28 +14,27 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class RegisterRequest {
 
-    @NotBlank(message = "El nombre completo es requerido")
-    @Size(min = 3, max = 100, message = "El nombre debe tener entre 3 y 100 caracteres")
+    @NotBlank(message = "Full name is required")
+    @Size(min = 3, max = 100, message = "Name must be between 3 and 100 characters")
     private String fullName;
 
-    @NotBlank(message = "El correo electrónico es requerido")
-    @Email(message = "El formato de correo electrónico es inválido")
+    @NotBlank(message = "Email address is required")
+    @Email(message = "Invalid email format")
     private String email;
 
-    @NotBlank(message = "La contraseña es requerida")
-    @Size(min = 6, message = "La contraseña debe tener al menos 6 caracteres")
+    @NotBlank(message = "Password is required")
+    @Size(min = 6, message = "Password must have at least 6 characters")
     private String password;
 
     private String phone;
 
-    @NotBlank(message = "El rol es requerido (DRIVER o MECHANIC)")
+    @NotBlank(message = "Role is required (DRIVER or MECHANIC)")
     private String role; // "DRIVER", "MECHANIC", "ROLE_DRIVER", "ROLE_MECHANIC"
 
-    // Datos opcionales para asignar un vehículo inicial (útil para conductores)
+    // Optional fields to assign initial vehicle (useful for drivers)
     private String licensePlate;
     private String brand;
     private String model;
     private Integer modelYear;
     private Double baseMileageKm;
 }
-

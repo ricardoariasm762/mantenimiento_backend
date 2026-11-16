@@ -45,9 +45,9 @@ public class JwtFilter extends OncePerRequestFilter {
 
         if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             if (jwtUtils.validateToken(jwt)) {
-                // Si el token tiene el rol directamente en claims, lo utilizamos o validamos con UserDetails
+                // If the token contains the role directly in claims, use it or validate with UserDetails
                 UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
-                
+
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         userDetails,
                         null,
@@ -61,4 +61,3 @@ public class JwtFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 }
-

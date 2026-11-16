@@ -26,7 +26,7 @@ public class SymptomNlpService {
             try {
                 return builder.build();
             } catch (Exception e) {
-                log.warn("No se pudo inicializar ChatClient para Spring AI. Se usará el clasificador heurístico: {}", e.getMessage());
+                log.warn("Could not initialize ChatClient for Spring AI. Heuristic classifier will be used: {}", e.getMessage());
                 return null;
             }
         });
@@ -56,7 +56,7 @@ public class SymptomNlpService {
                            - 1: Leve (ruido intermitente o síntoma inicial)
                            - 2: Moderado (falla constante que afecta el manejo)
                            - 3: Crítico (riesgo inminente, inmovilización o peligro)
-                        3. detectedComponent (texto con el nombre en español del sistema detectado: Transmisión, Frenos, Suspensión, Motor, o Eléctrico).
+                        3. detectedComponent (texto con el nombre del sistema detectado: Transmisión, Frenos, Suspensión, Motor, o Eléctrico).
                         
                         Responde ÚNICAMENTE en formato JSON con la siguiente estructura exacta:
                         {"symptomSystemCode": 0, "symptomSeverity": 2, "detectedComponent": "Transmisión"}
@@ -75,11 +75,11 @@ public class SymptomNlpService {
                     int severity = node.path("symptomSeverity").asInt(2);
                     String component = node.path("detectedComponent").asText(mapCodeToComponent(code));
 
-                    // Asegurar límites válidos
+                    // Ensure valid bounds
                     if (code < 0 || code > 4) code = 0;
                     if (severity < 1 || severity > 3) severity = 2;
 
-                    log.info("NLP LLM clasificación exitosa para síntoma '{}' -> Código: {}, Severidad: {}, Componente: {}",
+                    log.info("NLP LLM classification successful for symptom '{}' -> Code: {}, Severity: {}, Component: {}",
                             symptomText, code, severity, component);
 
                     return SymptomExtractionResult.builder()
@@ -89,7 +89,7 @@ public class SymptomNlpService {
                             .build();
                 }
             } catch (Exception e) {
-                log.warn("Falla al invocar servicio LLM o parsear respuesta ({}), activando fallback heurístico...", e.getMessage());
+                log.warn("Failed to call LLM service or parse response ({}), activating heuristic fallback...", e.getMessage());
             }
         }
 
@@ -118,12 +118,12 @@ public class SymptomNlpService {
             code = 3;
             component = "Motor";
         } else {
-            // Predeterminado si no coincide
+            // Default if no match
             code = 0;
             component = "Transmisión";
         }
 
-        // Severidad heurística
+        // Heuristic severity
         int severity = 1;
         if (containsAny(normalized, "humo", "fuego", "no frena", "bloque", "fuerte", "sever", "urgent", "peligr", "apago", "parar", "inmovil")) {
             severity = 3;
@@ -131,7 +131,7 @@ public class SymptomNlpService {
             severity = 2;
         }
 
-        log.info("Clasificación heurística de respaldo aplicada para '{}' -> Código: {}, Severidad: {}, Componente: {}",
+        log.info("Heuristic fallback classification applied for '{}' -> Code: {}, Severity: {}, Component: {}",
                 text, code, severity, component);
 
         return SymptomExtractionResult.builder()

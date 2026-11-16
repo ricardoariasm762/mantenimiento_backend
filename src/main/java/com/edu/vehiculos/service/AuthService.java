@@ -36,7 +36,7 @@ public class AuthService {
         String normalizedEmail = request.getEmail().trim().toLowerCase();
 
         if (userRepository.existsByEmailIgnoreCase(normalizedEmail)) {
-            throw new IllegalArgumentException("El correo electrónico " + normalizedEmail + " ya se encuentra registrado.");
+            throw new IllegalArgumentException("The email address " + normalizedEmail + " is already registered.");
         }
 
         Role assignedRole = parseRole(request.getRole());
@@ -50,7 +50,7 @@ public class AuthService {
                 .build();
 
         User savedUser = userRepository.save(user);
-        log.info("Usuario registrado exitosamente: id={}, email={}, rol={}", savedUser.getId(), savedUser.getEmail(), savedUser.getRole());
+        log.info("User registered successfully: id={}, email={}, role={}", savedUser.getId(), savedUser.getEmail(), savedUser.getRole());
 
         String defaultPlate = null;
         if (request.getLicensePlate() != null && !request.getLicensePlate().isBlank()) {
@@ -58,8 +58,8 @@ public class AuthService {
             Vehicle vehicle = vehicleRepository.findByLicensePlateIgnoreCase(plate)
                     .orElse(Vehicle.builder()
                             .licensePlate(plate)
-                            .brand(request.getBrand() != null ? request.getBrand().trim() : "Genérico")
-                            .model(request.getModel() != null ? request.getModel().trim() : "Estándar")
+                            .brand(request.getBrand() != null ? request.getBrand().trim() : "Generic")
+                            .model(request.getModel() != null ? request.getModel().trim() : "Standard")
                             .modelYear(request.getModelYear() != null ? request.getModelYear() : 2022)
                             .baseMileageKm(request.getBaseMileageKm() != null ? request.getBaseMileageKm() : 50000.0)
                             .owner(savedUser)
@@ -68,7 +68,7 @@ public class AuthService {
             vehicle.setOwner(savedUser);
             vehicleRepository.save(vehicle);
             defaultPlate = plate;
-            log.info("Vehículo asignado al registrar usuario: placa={}", plate);
+            log.info("Vehicle assigned upon user registration: plate={}", plate);
         }
 
         String token = jwtUtils.generateToken(savedUser);
@@ -93,20 +93,20 @@ public class AuthService {
                     new UsernamePasswordAuthenticationToken(normalizedEmail, request.getPassword())
             );
         } catch (Exception ex) {
-            log.warn("Fallo de autenticación para email {}: {}", normalizedEmail, ex.getMessage());
-            throw new BadCredentialsException("Credenciales inválidas. Verifique su correo y contraseña.");
+            log.warn("Authentication failed for email {}: {}", normalizedEmail, ex.getMessage());
+            throw new BadCredentialsException("Invalid credentials. Please verify your email and password.");
         }
 
         User user = userRepository.findByEmailIgnoreCase(normalizedEmail)
-                .orElseThrow(() -> new BadCredentialsException("Usuario no encontrado"));
+                .orElseThrow(() -> new BadCredentialsException("User not found"));
 
         String token = jwtUtils.generateToken(user);
 
-        // Buscar placa predeterminada del usuario si existe
+        // Check default vehicle plate for user if present
         List<Vehicle> userVehicles = vehicleRepository.findByOwner(user);
         String defaultPlate = userVehicles.isEmpty() ? null : userVehicles.get(0).getLicensePlate();
 
-        log.info("Inicio de sesión exitoso para usuario: {}", user.getEmail());
+        log.info("Successful login for user: {}", user.getEmail());
 
         return AuthResponse.builder()
                 .token(token)
@@ -122,13 +122,13 @@ public class AuthService {
 
     public AuthResponse getCurrentUser(String email) {
         User user = userRepository.findByEmailIgnoreCase(email)
-                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         List<Vehicle> userVehicles = vehicleRepository.findByOwner(user);
         String defaultPlate = userVehicles.isEmpty() ? null : userVehicles.get(0).getLicensePlate();
 
         return AuthResponse.builder()
-                .token(null) // No es necesario regenerar
+                .token(null) // No need to regenerate token
                 .type("Bearer")
                 .id(user.getId())
                 .fullName(user.getFullName())
@@ -150,4 +150,3 @@ public class AuthService {
         return Role.ROLE_DRIVER;
     }
 }
-
