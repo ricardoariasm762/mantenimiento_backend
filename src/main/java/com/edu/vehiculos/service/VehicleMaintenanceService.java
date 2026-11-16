@@ -197,11 +197,17 @@ public class VehicleMaintenanceService {
 
     private boolean isVehicleAssignedToUser(String plate, User user) {
         Optional<Vehicle> vehicleOpt = vehicleRepository.findByLicensePlateIgnoreCase(plate);
-        if (vehicleOpt.isPresent() && vehicleOpt.get().getOwner() != null) {
+        if (vehicleOpt.isPresent()) {
+            if (vehicleOpt.get().getOwner() == null) {
+                return true;
+            }
             return vehicleOpt.get().getOwner().getId().equals(user.getId());
         }
         // Fallback: verify if the driver has previously submitted diagnoses for this plate
         List<VehicleDiagnosisLog> logs = logRepository.findByLicensePlateOrderByCreatedAtDesc(plate);
+        if (logs.isEmpty()) {
+            return true; // No conflicting records exist for this plate yet
+        }
         return logs.stream().anyMatch(l -> l.getReportedBy() != null && l.getReportedBy().getId().equals(user.getId()));
     }
 

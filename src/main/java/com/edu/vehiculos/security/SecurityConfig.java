@@ -1,5 +1,6 @@
 package com.edu.vehiculos.security;
 
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -56,12 +57,26 @@ public class SecurityConfig {
                         // History by specific license plate accessible by mechanic or driver (ownership validated in service)
                         .requestMatchers(HttpMethod.GET, "/api/vehicles/history/{licensePlate}").hasAnyRole("DRIVER", "MECHANIC")
 
-                        // Management of assigned vehicles
+                        // Management of assigned vehicles and fleet
                         .requestMatchers("/api/vehicles/my-vehicles/**").hasAnyRole("DRIVER", "MECHANIC")
                         .requestMatchers(HttpMethod.POST, "/api/vehicles/register-vehicle").hasAnyRole("DRIVER", "MECHANIC")
+                        .requestMatchers("/api/vehicles/fleet/**").hasAnyRole("DRIVER", "MECHANIC")
+                        .requestMatchers("/api/workshop-orders/**").hasAnyRole("DRIVER", "MECHANIC")
 
                         // Any other request requires authentication
                         .anyRequest().authenticated()
+                )
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setContentType("application/json");
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            response.getOutputStream().println("{ \"status\": 401, \"error\": \"Unauthorized\", \"message\": \"Autenticación requerida para acceder a este recurso\" }");
+                        })
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.setContentType("application/json");
+                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                            response.getOutputStream().println("{ \"status\": 403, \"error\": \"Forbidden\", \"message\": \"Acceso denegado: no tiene permisos para realizar esta operación\" }");
+                        })
                 )
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
